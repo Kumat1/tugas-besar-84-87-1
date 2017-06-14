@@ -11,11 +11,11 @@ public class RekamMedis extends JFrame{
     private JFrame jf;
     private JPanel centerLeft, centerRight, center, southLogin ,northLogin ,panelLogin, panelHome, cardInsert, cardSelect, cardDelete, cardUpdate;
     private JPanel cardInsertNorth, cardInsertSouth, cardInsertLeft, cardInsertRight, cardSelectLeft, cardSelectRight, cardDeleteLeft, cardDeleteRight, cardUpdateLeft, cardUpdateRight;
-    private JPanel menuHome, menuHomeNorth, menuHomeCenter, cardUpdateNorth, cardUpdateSouth, cardSelectNorth, cardSelectSouth;
+    private JPanel menuHome, menuHomeNorth, menuHomeCenter, cardUpdateNorth, cardUpdateSouth, cardSelectNorth, cardSelectSouth, cardDeleteNorth, cardDeleteSouth, menuHomeSouth;
     private JScrollPane scroll;
-    private JLabel title, titleinsert, titlehome, titleupdate, titleselect, listid, listnama, listumur, listberat, listtinggi, listdes;
-    private JButton tombollogin, tombolinsert, tombolback, menuInsert, menuSelect, menuDelete, menuUpdate, tombolbackselect;
-    private JTextField textUser, textNama, textUmur, textBerat, textTinggi, textDes, upId, upNama, upUmur, upBerat, upTinggi, upDeskripsi;
+    private JLabel title, titleinsert, titlehome, titleupdate,titledelete, titleselect, listid, listnama, listumur, listberat, listtinggi, listdes;
+    private JButton tombollogin,tombollogout, tombolinsert, tombolback, tombolupdate, tomboldelete, menuInsert, menuSelect, menuDelete, menuUpdate, tombolbackselect, tombolbackupdate, tombolbackdelete;
+    private JTextField textUser, textNama, textUmur, textBerat, textTinggi, textDes, upId, upNama, upUmur, upBerat, upTinggi, upDeskripsi, delId;
     private JPasswordField textPass;
     private CardLayout cards;
 
@@ -29,6 +29,7 @@ public class RekamMedis extends JFrame{
         textBerat = new JTextField();
         textTinggi = new JTextField();
         textDes = new JTextField();
+        delId = new JTextField();
         upId = new JTextField();
         upNama = new JTextField();
         upUmur = new JTextField();
@@ -36,10 +37,15 @@ public class RekamMedis extends JFrame{
         upTinggi = new JTextField();
         upDeskripsi = new JTextField();
         textPass = new JPasswordField();
-        tombollogin = new JButton("LOGIN");
+        tombollogin = new JButton("Login");
+        tombollogout = new JButton("Logout");
         tombolinsert = new JButton("Insert");
+        tomboldelete = new JButton("Delete");
         tombolback = new JButton("Back");
+        tombolbackdelete = new JButton("Back");
         tombolbackselect = new JButton("Back");
+        tombolbackupdate = new JButton("Back");
+        tombolupdate = new JButton("Update");
         menuInsert = new JButton("Menu Insert");
         menuSelect = new JButton("Menu Select");
         menuDelete = new JButton("Menu Delete");
@@ -54,7 +60,7 @@ public class RekamMedis extends JFrame{
 
         jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jf.setTitle("Rekam Medis");
-        jf.setSize(new Dimension(500,180));
+        jf.setSize(new Dimension(500,150));
         jf.setLayout(new BorderLayout());
 
         centerLeft = new JPanel(new GridLayout(2,1));
@@ -92,12 +98,17 @@ public class RekamMedis extends JFrame{
         menuHomeCenter.add(menuInsert);
         menuHomeCenter.add(menuSelect);
         menuHomeCenter.add(menuUpdate);
+        menuHomeCenter.add(menuDelete);
+
+        menuHomeSouth = new JPanel(new FlowLayout());
+        menuHomeSouth.add(tombollogout);
 
         menuHome = new JPanel();
         menuHome.setLayout(new BorderLayout());
         menuHome.setBackground(Color.orange);
         menuHome.add(menuHomeNorth, BorderLayout.NORTH);
         menuHome.add(menuHomeCenter, BorderLayout.CENTER);
+        menuHome.add(menuHomeSouth, BorderLayout.SOUTH);
 
         cardInsert = new JPanel();
         cardInsert.setLayout(new BorderLayout());
@@ -171,6 +182,25 @@ public class RekamMedis extends JFrame{
         cardDelete.setLayout(new BorderLayout());
         cardDelete.setForeground(Color.yellow);
 
+        titledelete = new JLabel("Silahkan Hapus Data Pasien...");
+        cardDeleteNorth = new JPanel(new FlowLayout());
+        cardDeleteNorth.add(titledelete);
+
+        cardDeleteLeft = new JPanel(new GridLayout(1,1));
+        cardDeleteLeft.add(new JLabel("Id = "));
+
+        cardDeleteRight = new JPanel(new GridLayout(1,1));
+        cardDeleteRight.add(delId);
+
+        cardDeleteSouth = new JPanel(new FlowLayout());
+        cardDeleteSouth.add(tomboldelete);
+        cardDeleteSouth.add(tombolbackdelete);
+
+        cardDelete.add(cardDeleteNorth, BorderLayout.NORTH);
+        cardDelete.add(cardDeleteLeft, BorderLayout.WEST);
+        cardDelete.add(cardDeleteRight, BorderLayout.CENTER);
+        cardDelete.add(cardDeleteSouth, BorderLayout.SOUTH);
+
         cardUpdate = new JPanel();
         cardUpdate.setLayout(new BorderLayout());
         cardUpdate.setForeground(Color.green);
@@ -196,11 +226,12 @@ public class RekamMedis extends JFrame{
         cardUpdateNorth.add(titleupdate);
 
         cardUpdateSouth = new JPanel(new FlowLayout());
-        cardUpdateSouth.add(menuUpdate);
+        cardUpdateSouth.add(tombolupdate);
+        cardUpdateSouth.add(tombolbackupdate);
 
         cardUpdate.add(cardUpdateNorth, BorderLayout.NORTH);
         cardUpdate.add(cardUpdateLeft, BorderLayout.WEST);
-        cardUpdate.add(cardUpdateRight, BorderLayout.EAST);
+        cardUpdate.add(cardUpdateRight, BorderLayout.CENTER);
         cardUpdate.add(cardUpdateSouth, BorderLayout.SOUTH);
 
         panelHome.add(menuHome,"Menu");
@@ -216,140 +247,203 @@ public class RekamMedis extends JFrame{
         jf.setResizable(false);
         panelHome.setVisible(false);
 
-        tombollogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try{
-                    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/rekammedis", "root", "");
-                    String a = textUser.getText();
-                    String b = textPass.getText();
-                    String query = "SELECT * FROM login";
-                    Statement sta = connection.createStatement();
-                    ResultSet rs = sta.executeQuery(query);
+        tombollogin.addActionListener(e -> {
+            try{
+                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/rekammedis", "root", "");
+                String a = textUser.getText();
+                String b = textPass.getText();
+                String query = "SELECT * FROM login";
+                Statement sta = connection.createStatement();
+                ResultSet rs = sta.executeQuery(query);
 
-                    while(rs.next())
-                    {
-                        if(rs.getString(1).equals(a) && rs.getString(2).equals(b)){
-                            panelLogin.setVisible(false);
-                            jf.setSize(500,100);
-                            panelHome.setVisible(true);
-                        }
+                while(rs.next())
+                {
+                    if(rs.getString(1).equals(a) && rs.getString(2).equals(b)){
+                        panelLogin.setVisible(false);
+                        jf.setSize(500,250);
+                        panelHome.setVisible(true);
                     }
-                    connection.close();
                 }
-                catch (Exception err) {
-                    System.out.println("ERROR: " + err);
-                }
-                }
+                connection.close();
+            }
+            catch (Exception err) {
+                System.out.println("ERROR: " + err);
+            }
             }
         );
 
-        tombolinsert.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Connection connection = Connector.getConnection();
-                String nama = textNama.getText();
-                String umur = textUmur.getText();
-                String berat = textBerat.getText();
-                String tinggi = textTinggi.getText();
-                String deskripsi = textDes.getText();
-                try {
-                    PreparedStatement ps = connection.prepareStatement("INSERT INTO datapasien (nama,umur,berat,tinggi,deskripsi) VALUES (?,?,?,?,?)");
-                    ps.setString(1, nama);
-                    ps.setString(2, umur);
-                    ps.setString(3, berat);
-                    ps.setString(4, tinggi);
-                    ps.setString(5, deskripsi);
+        tombolinsert.addActionListener(e -> {
+            Connection connection = Connector.getConnection();
+            String nama = textNama.getText();
+            String umur = textUmur.getText();
+            String berat = textBerat.getText();
+            String tinggi = textTinggi.getText();
+            String deskripsi = textDes.getText();
 
-                    ps.executeUpdate();
-                    connection.close();
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
+            try {
+                PreparedStatement ps = connection.prepareStatement("INSERT INTO datapasien (nama,umur,berat,tinggi,deskripsi) VALUES (?,?,?,?,?)");
+                ps.setString(1, nama);
+                ps.setString(2, umur);
+                ps.setString(3, berat);
+                ps.setString(4, tinggi);
+                ps.setString(5, deskripsi);
+
+                ps.executeUpdate();
+                connection.close();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        tombolback.addActionListener(e -> {
+            cardInsert.setVisible(false);
+            menuHome.setVisible(true);
+            jf.setSize(500, 250);
+        });
+
+        menuInsert.addActionListener(e -> {
+            menuHome.setVisible(false);
+            cardInsert.setVisible(true);
+            jf.setSize(500, 500);
+        });
+
+        menuSelect.addActionListener(e -> {
+            menuHome.setVisible(false);
+            cardSelect.setVisible(true);
+            jf.setSize(500, 500);
+
+            Connection connection = Connector.getConnection();
+            String query = "SELECT * FROM datapasien";
+            try {
+                Statement sta = connection.createStatement();
+                ResultSet rse = sta.executeQuery(query);
+            while(rse.next()) {
+                String id = rse.getString(1);
+                String nama = rse.getString(2);
+                String umur = rse.getString(3);
+                String berat = rse.getString(4);
+                String tinggi = rse.getString(5);
+                String deskripsi = rse.getString(6);
+
+                listid.setText(id);
+                listnama.setText(nama);
+                listumur.setText(umur);
+                listberat.setText(berat);
+                listtinggi.setText(tinggi);
+                listdes.setText(deskripsi);
+            }
+                listid.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                listid.setMaximumSize(new Dimension(100, listid.getMinimumSize().height + 5));
+                listnama.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                listnama.setMaximumSize(new Dimension(100, listnama.getMinimumSize().height + 5));
+                listumur.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                listumur.setMaximumSize(new Dimension(100, listumur.getMinimumSize().height + 5));
+                listberat.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                listberat.setMaximumSize(new Dimension(100, listberat.getMinimumSize().height + 5));
+                listtinggi.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                listtinggi.setMaximumSize(new Dimension(100, listtinggi.getMinimumSize().height + 5));
+                listdes.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                listdes.setMaximumSize(new Dimension(100, listdes.getMinimumSize().height + 5));
+
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        menuUpdate.addActionListener(e -> {
+            menuHome.setVisible(false);
+            cardUpdate.setVisible(true);
+            jf.setSize(500, 500);
+        });
+
+        tombolbackselect.addActionListener(e -> {
+            cardSelect.setVisible(false);
+            menuHome.setVisible(true);
+            jf.setSize(500,250);
+        });
+
+        tombolbackupdate.addActionListener(e -> {
+            cardUpdate.setVisible(false);
+            menuHome.setVisible(true);
+            jf.setSize(500,250);
+        });
+
+        tombolupdate.addActionListener(e -> {
+            String id = upId.getText();
+            String nama = upNama.getText();
+            String umur = upUmur.getText();
+            String berat = upBerat.getText();
+            String tinggi = upTinggi.getText();
+            String deskripsi = upDeskripsi.getText();
+
+            Connection connection = Connector.getConnection();
+            String query = "SELECT * FROM datapasien";
+
+            try {
+                Statement sta = connection.createStatement();
+                ResultSet rs = sta.executeQuery(query);
+                PreparedStatement ps = connection.prepareStatement("UPDATE datapasien SET nama=?, umur=?, berat=?, tinggi=?, deskripsi=? WHERE id=?");
+                ps.setString(1, nama);
+                ps.setString(2, umur);
+                ps.setString(3, berat);
+                ps.setString(4, tinggi);
+                ps.setString(5, deskripsi);
+                ps.setString(6, id);
+
+                while(rs.next()) {
+                    if (rs.getString(1).equals(id)) {
+
+                        ps.executeUpdate();
+                    }
+                };
+                connection.close();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        menuDelete.addActionListener(e -> {
+            menuHome.setVisible(false);
+            cardDelete.setVisible(true);
+            jf.setSize(500,200);
+        });
+
+        tombolbackdelete.addActionListener(e -> {
+            cardDelete.setVisible(false);
+            menuHome.setVisible(true);
+            jf.setSize(500,250);
+        });
+
+        tomboldelete.addActionListener(e -> {
+            String id = delId.getText();
+
+            Connection connection = Connector.getConnection();
+            String query = "SELECT * FROM datapasien";
+
+            Statement sta = null;
+            try {
+                sta = connection.createStatement();
+                ResultSet rs = sta.executeQuery(query);
+
+                PreparedStatement ps = connection.prepareStatement("DELETE FROM datapasien WHERE id=?");
+                ps.setString(1,id);
+
+                while(rs.next()){
+                 if(rs.getString(1).equals(id)){
+                     ps.executeUpdate();
+                 }
                 }
+                connection.close();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
             }
+
         });
 
-        tombolback.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardInsert.setVisible(false);
-                menuHome.setVisible(true);
-                jf.setSize(500, 100);
-            }
-        });
-
-        menuInsert.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                menuHome.setVisible(false);
-                cardInsert.setVisible(true);
-                jf.setSize(500, 500);
-            }
-        });
-
-        menuSelect.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                menuHome.setVisible(false);
-                cardSelect.setVisible(true);
-                jf.setSize(500, 500);
-
-                Connection connection = Connector.getConnection();
-                String query = "SELECT * FROM datapasien";
-                try {
-                    Statement sta = connection.createStatement();
-                    ResultSet rse = sta.executeQuery(query);
-                while(rse.next()) {
-                    String id = rse.getString(1);
-                    String nama = rse.getString(2);
-                    String umur = rse.getString(3);
-                    String berat = rse.getString(4);
-                    String tinggi = rse.getString(5);
-                    String deskripsi = rse.getString(6);
-
-                    listid.setText(id);
-                    listnama.setText(nama);
-                    listumur.setText(umur);
-                    listberat.setText(berat);
-                    listtinggi.setText(tinggi);
-                    listdes.setText(deskripsi);
-                }
-                    listid.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    listid.setMaximumSize(new Dimension(100, listid.getMinimumSize().height + 5));
-                    listnama.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    listnama.setMaximumSize(new Dimension(100, listnama.getMinimumSize().height + 5));
-                    listumur.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    listumur.setMaximumSize(new Dimension(100, listumur.getMinimumSize().height + 5));
-                    listberat.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    listberat.setMaximumSize(new Dimension(100, listberat.getMinimumSize().height + 5));
-                    listtinggi.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    listtinggi.setMaximumSize(new Dimension(100, listtinggi.getMinimumSize().height + 5));
-                    listdes.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    listdes.setMaximumSize(new Dimension(100, listdes.getMinimumSize().height + 5));
-
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
-
-        menuUpdate.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                menuHome.setVisible(false);
-                cardUpdate.setVisible(true);
-            }
-        });
-
-        tombolbackselect.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardSelect.setVisible(false);
-                menuHome.setVisible(true);
-                jf.setSize(500,100);
-
-                Connection connection = Connector.getConnection();
-            }
+        tombollogout.addActionListener(e -> {
+            menuHome.setVisible(false);
+            panelLogin.setVisible(true);
+            jf.setSize(500,150);
         });
     }
 
